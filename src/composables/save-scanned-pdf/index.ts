@@ -82,7 +82,7 @@ export function useSaveScannedPDF(
       const scanPages = await Promise.all(
         pages.map(async (page) => {
           const { blob: pdfPage, height, width } = await pdf.renderPage(page, scale_)
-          const composedPage = await applySignatureOverlay(pdfPage, get(signatureOverlay), page)
+          const composedPage = await applySignatureOverlay(pdfPage, signatureOverlay ? get(signatureOverlay) : undefined, page)
           const { blob: scanPage } = await scan.renderPage(composedPage)
           finishedPages.value += 1
           return {

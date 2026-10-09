@@ -1,40 +1,26 @@
 <template>
   <MainContainer>
-    <div style="margin-bottom: 25px">
-      <BackToIndex />
-    </div>
+    <div style="margin-bottom: 25px"><BackToIndex /></div>
     <n-grid x-gap="25" y-gap="25" :cols="12" item-responsive responsive="screen">
       <n-grid-item span="12 s:5 m:4 l:3">
         <n-space vertical>
           <PDFUpload @update:pdf="pdf = $event" />
           <PDFInfo :pdf="pdf" v-if="pdf" />
-
           <SignatureStampCard v-model="signatureOverlay" :num-pages="numPages" />
-
+          <PaperBackgroundCard v-model="paperBackground" />
           <ScanSettingsCard v-model:config="config" />
-
-          <SaveButtonCard
-            @generate="generate"
-            :progress="progress"
-            :saving="saving"
-            :pdf="scannedPDF"
-          />
+          <SaveButtonCard @generate="generate" :progress="progress" :saving="saving" :pdf="scannedPDF" />
         </n-space>
       </n-grid-item>
       <n-grid-item span="12 s:7 m:8 l:9">
-        <PreviewCompare
-          :pdfRenderer="pdfRenderer"
-          :scanRenderer="scanRenderer"
-          :scale="config.scale"
-          :signature-overlay="signatureOverlay"
-        />
+        <PreviewCompare :pdfRenderer="pdfRenderer" :scanRenderer="scanRenderer" :scale="config.scale" :signature-overlay="signatureOverlay" :paper-background="paperBackground" />
       </n-grid-item>
     </n-grid>
   </MainContainer>
 </template>
 
 <script lang="ts" setup>
-import { NGrid, NGridItem, NSpace } from 'naive-ui'
+import { NGrid, NGridItem, NSpace, useMessage } from 'naive-ui'
 import MainContainer from '@/components/MainContainer.vue'
 import { type ScanConfig, defaultConfig, CanvasScanner } from '@/utils/scan-renderer/canvas-scan'
 import ScanSettingsCard from '@/components/scan-settings/ScanSettingsCard.vue'
@@ -51,61 +37,35 @@ import { useSaveScannedPDF } from '@/composables/save-scanned-pdf'
 import PDFInfo from '@/components/pdf-upload/PDFInfo.vue'
 import SignatureStampCard from '@/components/signature-stamp/SignatureStampCard.vue'
 import { defaultSignatureOverlay, type SignatureOverlay } from '@/utils/signature-overlay'
+import PaperBackgroundCard from '@/components/paper-background/PaperBackgroundCard.vue'
+import { type PaperBackgroundStyle } from '@/utils/paper-background'
 import { ScanCacher } from '@/utils/scan-renderer/scan-cacher'
-import { useMessage } from 'naive-ui'
 
 const { t } = useI18n()
 const message = useMessage()
-
-useHead({
-  title: t('base.scanTitle') + ' - ' + t('base.title'),
-  meta: [{ name: 'description', content: t('base.description') }]
-})
+useHead({ title: t('base.scanTitle') + ' - ' + t('base.title'), meta: [{ name: 'description', content: t('base.description') }] })
 
 const pdf = ref<File | undefined>(undefined)
 const signatureOverlay = ref<SignatureOverlay>({ ...defaultSignatureOverlay })
+const paperBackground = ref<PaperBackgroundStyle>('none')
 const numPages = ref(1)
 
 const initExamplePDF = async () => {
   const response = await fetch(PDFURL)
   const blob = await response.blob()
   const file = new File([blob], 'example.pdf')
-  if (!pdf.value) {
-    pdf.value = file
-  }
+  if (!pdf.value) pdf.value = file
 }
-
 initExamplePDF()
 
 const config = ref<ScanConfig>(defaultConfig)
-const pdfRenderer = computed(() => {
-  if (!pdf.value) return
-
-  return new PDF(pdf.value)
-})
-
-watch(pdfRenderer, async (renderer) => {
-  numPages.value = renderer ? await renderer.getNumPages() : 1
-}, { immediate: true })
+const pdfRenderer = computed(() => pdf.value ? new PDF(pdf.value) : undefined)
+watch(pdfRenderer, async (renderer) => { numPages.value = renderer ? await renderer.getNumPages() : 1 }, { immediate: true })
 
 const scanRenderer = ref(new ScanCacher(new CanvasScanner(config.value)))
-watch(
-  config,
-  (newConfig) => {
-    scanRenderer.value = new ScanCacher(new CanvasScanner(newConfig))
-  },
-  { deep: true }
-)
-
+watch(config, (newConfig) => { scanRenderer.value = new ScanCacher(new CanvasScanner(newConfig)) }, { deep: true })
 const scale = computed(() => config.value.scale)
-
-const { save, progress, saving, scannedPDF } = useSaveScannedPDF(
-  pdf,
-  pdfRenderer,
-  scanRenderer,
-  scale,
-  signatureOverlay
-)
+const { save, progress, saving, scannedPDF } = useSaveScannedPDF(pdf, pdfRenderer, scanRenderer, scale, signatureOverlay, paperBackground)
 
 const generate = async () => {
   try {

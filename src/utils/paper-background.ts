@@ -27,7 +27,6 @@ export async function applyPaperBackground(
 
   const w = canvas.width
   const h = canvas.height
-  // Build a paper sheet at the same size as the PDF page.
   const base = ctx.createLinearGradient(0, 0, w * 0.9, h)
   if (style === 'photocopy') {
     base.addColorStop(0, '#e8e8e8')
@@ -41,7 +40,7 @@ export async function applyPaperBackground(
   ctx.fillStyle = base
   ctx.fillRect(0, 0, w, h)
 
-  // Subtle fine grain, with deterministic randomness for stable previews.
+  // A deterministic seed gives each PDF page a distinct but stable paper pattern.
   let state = (seed >>> 0) || 1
   const random = () => {
     state = (state * 1664525 + 1013904223) >>> 0
@@ -76,14 +75,26 @@ export async function applyPaperBackground(
   }
 
   if (style === 'folded') {
-    crease(true, 0.5, 0.12, Math.max(5, w * 0.012))
-    crease(false, 0.52, 0.16, Math.max(5, h * 0.01))
+    // Keep the folds subtle but vary their positions/orientation on each page.
+    const primaryVertical = random() > 0.5
+    const primaryPosition = 0.36 + random() * 0.3
+    const secondaryPosition = 0.35 + random() * 0.3
+    crease(primaryVertical, primaryPosition, 0.09 + random() * 0.06, Math.max(4, (primaryVertical ? w : h) * 0.008))
+    if (random() > 0.24) {
+      crease(!primaryVertical, secondaryPosition, 0.07 + random() * 0.06, Math.max(4, (primaryVertical ? h : w) * 0.006))
+    }
+    if (random() > 0.65) {
+      crease(random() > 0.5, 0.2 + random() * 0.6, 0.035 + random() * 0.035, Math.max(3, Math.min(w, h) * 0.003))
+    }
   } else if (style === 'creased') {
-    crease(false, 0.28, 0.1, Math.max(4, h * 0.006))
-    crease(false, 0.73, 0.09, Math.max(4, h * 0.005))
-    crease(true, 0.66, 0.08, Math.max(4, w * 0.006))
+    const count = 2 + Math.floor(random() * 3)
+    for (let i = 0; i < count; i++) {
+      const vertical = random() > 0.58
+      const position = 0.15 + random() * 0.7
+      crease(vertical, position, 0.045 + random() * 0.06, Math.max(3, (vertical ? w : h) * (0.003 + random() * 0.004)))
+    }
   } else if (style === 'crumpled') {
-    // Soft, irregular diagonal creases mimic a handled sheet without obscuring text.
+    // Random soft, irregular creases mimic a handled sheet without obscuring text.
     for (let i = 0; i < 18; i++) {
       const x = random() * w
       const y = random() * h
@@ -106,8 +117,7 @@ export async function applyPaperBackground(
     ctx.fillRect(0, 0, w, h)
   }
 
-  // Multiply the original PDF page over the paper. White areas preserve the
-  // texture, while dark text and graphics remain legible on top of it.
+  // Multiply the original PDF page over the paper so text remains on top.
   ctx.globalCompositeOperation = 'multiply'
   ctx.drawImage(source, 0, 0, w, h)
   ctx.globalCompositeOperation = 'source-over'

@@ -40,7 +40,6 @@ export async function applyPaperBackground(
   ctx.fillStyle = base
   ctx.fillRect(0, 0, w, h)
 
-  // A deterministic seed gives each PDF page a distinct but stable paper pattern.
   let state = (seed >>> 0) || 1
   const random = () => {
     state = (state * 1664525 + 1013904223) >>> 0
@@ -53,7 +52,8 @@ export async function applyPaperBackground(
     const n = Math.round((random() - 0.5) * strength)
     d[i] = Math.max(0, Math.min(255, d[i] + n))
     d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + n))
-    d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + n))
+    d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + n)
+    )
   }
   ctx.putImageData(grain, 0, 0)
 
@@ -75,17 +75,12 @@ export async function applyPaperBackground(
   }
 
   if (style === 'folded') {
-    // Keep the folds subtle but vary their positions/orientation on each page.
     const primaryVertical = random() > 0.5
     const primaryPosition = 0.36 + random() * 0.3
     const secondaryPosition = 0.35 + random() * 0.3
     crease(primaryVertical, primaryPosition, 0.09 + random() * 0.06, Math.max(4, (primaryVertical ? w : h) * 0.008))
-    if (random() > 0.24) {
-      crease(!primaryVertical, secondaryPosition, 0.07 + random() * 0.06, Math.max(4, (primaryVertical ? h : w) * 0.006))
-    }
-    if (random() > 0.65) {
-      crease(random() > 0.5, 0.2 + random() * 0.6, 0.035 + random() * 0.035, Math.max(3, Math.min(w, h) * 0.003))
-    }
+    if (random() > 0.24) crease(!primaryVertical, secondaryPosition, 0.07 + random() * 0.06, Math.max(4, (primaryVertical ? h : w) * 0.006))
+    if (random() > 0.65) crease(random() > 0.5, 0.2 + random() * 0.6, 0.035 + random() * 0.035, Math.max(3, Math.min(w, h) * 0.003))
   } else if (style === 'creased') {
     const count = 2 + Math.floor(random() * 3)
     for (let i = 0; i < count; i++) {
@@ -94,7 +89,6 @@ export async function applyPaperBackground(
       crease(vertical, position, 0.045 + random() * 0.06, Math.max(3, (vertical ? w : h) * (0.003 + random() * 0.004)))
     }
   } else if (style === 'crumpled') {
-    // Random soft, irregular creases mimic a handled sheet without obscuring text.
     for (let i = 0; i < 18; i++) {
       const x = random() * w
       const y = random() * h
@@ -117,11 +111,32 @@ export async function applyPaperBackground(
     ctx.fillRect(0, 0, w, h)
   }
 
-  // Multiply the original PDF page over the paper so text remains on top.
-  ctx.globalCompositeOperation = 'multiply'
-  ctx.drawImage(source, 0, 0, w, h)
-  ctx.globalCompositeOperation = 'source-over'
+  // Extract foreground from the rendered PDF: near-white pixels become
+  // transparent, while text and colored graphics remain in their original
+  // colors. This places the paper texture genuinely behind the document.
+  const foregroundCanvas = document.createElement('canvas')
+  foregroundCanvas.width = w
+  foregroundCanvas.height = h
+  const foregroundContext = foregroundCanvas.getContext('2d', { willReadFrequently: true })
+  if (!foregroundContext) {
+    source.close()
+    return pageBlob
+  }
+  foregroundContext.drawImage(source, 0, 0)
   source.close()
+  const foreground = foregroundContext.getImageData(0, 0, w, h)
+  const pixels = foreground.data
+  for (let i = 0; i < pixels.length; i += 4) {
+    const r = pixels[i]
+    const g = pixels[i + 1]
+    const b = pixels[i + 2]
+    // Use distance from white to retain colored marks as well as black text.
+    // A small white threshold avoids leaving a visible pale rectangle.
+    const darkness = 255 - (0.299 * r + 0.587 * g + 0.114 * b)
+    pixels[i + 3] = Math.round(Math.max(0, Math.min(255, (darkness - 3) * 1.35)))
+  }
+  foregroundContext.putImageData(foreground, 0, 0)
+  ctx.drawImage(foregroundCanvas, 0, 0)
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Unable to create paper background')), 'image/png')

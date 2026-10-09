@@ -23,32 +23,18 @@ import { ref } from 'vue'
 import { computedAsync } from '@vueuse/core'
 import PreviewPagination from './PreviewPagination.vue'
 import { applySignatureOverlay, type SignatureOverlay } from '@/utils/signature-overlay'
+import { applyPaperBackground, type PaperBackgroundStyle } from '@/utils/paper-background'
 import { NSpace } from 'naive-ui'
 
 const page = ref(1)
 const scanning = ref(false)
 
 interface PDFRenderer {
-  renderPage(
-    page: number,
-    scale: number
-  ): Promise<{
-    blob: Blob
-    width: number
-    height: number
-  }>
+  renderPage(page: number, scale: number): Promise<{ blob: Blob; width: number; height: number }>
   getNumPages(): Promise<number>
 }
-
 interface ScanRenderer {
-  renderPage(
-    image: Blob,
-    options?: {
-      signal?: AbortSignal
-    }
-  ): Promise<{
-    blob: Blob
-  }>
+  renderPage(image: Blob, options?: { signal?: AbortSignal }): Promise<{ blob: Blob }>
 }
 
 const props = defineProps<{
@@ -56,43 +42,25 @@ const props = defineProps<{
   scanRenderer?: ScanRenderer
   scale: number
   signatureOverlay?: SignatureOverlay
+  paperBackground?: PaperBackgroundStyle
 }>()
 
 const image = computedAsync(async () => {
-  if (!props.pdfRenderer)
-    return {
-      blob: undefined,
-      height: undefined,
-      width: undefined
-    }
-
+  if (!props.pdfRenderer) return { blob: undefined, height: undefined, width: undefined }
   const { blob, width, height } = await props.pdfRenderer.renderPage(page.value, props.scale)
-  return {
-    blob,
-    width,
-    height
-  }
+  return { blob, width, height }
 })
 
 let controller = new AbortController()
-
-const scanImage = computedAsync(
-  async () => {
-    controller.abort()
-    controller = new AbortController()
-    if (!props.scanRenderer || !image.value.blob) return
-
-    const composedPage = await applySignatureOverlay(image.value.blob, props.signatureOverlay, page.value)
-    const { blob } = await props.scanRenderer.renderPage(composedPage, {
-      signal: controller.signal
-    })
-    return {
-      blob
-    }
-  },
-  undefined,
-  scanning
-)
+const scanImage = computedAsync(async () => {
+  controller.abort()
+  controller = new AbortController()
+  if (!props.scanRenderer || !image.value.blob) return
+  const paperPage = await applyPaperBackground(image.value.blob, props.paperBackground, page.value)
+  const composedPage = await applySignatureOverlay(paperPage, props.signatureOverlay, page.value)
+  const { blob } = await props.scanRenderer.renderPage(composedPage, { signal: controller.signal })
+  return { blob }
+}, undefined, scanning)
 
 const numPages = computedAsync(async () => {
   page.value = 1

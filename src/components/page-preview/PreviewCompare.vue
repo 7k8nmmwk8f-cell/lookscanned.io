@@ -22,6 +22,7 @@ import ImagePreview from './ImagePreview.vue'
 import { ref } from 'vue'
 import { computedAsync } from '@vueuse/core'
 import PreviewPagination from './PreviewPagination.vue'
+import { applySignatureOverlay, type SignatureOverlay } from '@/utils/signature-overlay'
 import { NSpace } from 'naive-ui'
 
 const page = ref(1)
@@ -54,6 +55,7 @@ const props = defineProps<{
   pdfRenderer?: PDFRenderer
   scanRenderer?: ScanRenderer
   scale: number
+  signatureOverlay?: SignatureOverlay
 }>()
 
 const image = computedAsync(async () => {
@@ -80,7 +82,8 @@ const scanImage = computedAsync(
     controller = new AbortController()
     if (!props.scanRenderer || !image.value.blob) return
 
-    const { blob } = await props.scanRenderer.renderPage(image.value.blob, {
+    const composedPage = await applySignatureOverlay(image.value.blob, props.signatureOverlay, page.value)
+    const { blob } = await props.scanRenderer.renderPage(composedPage, {
       signal: controller.signal
     })
     return {

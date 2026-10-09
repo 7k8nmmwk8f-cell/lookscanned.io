@@ -26,6 +26,7 @@
           :pdfRenderer="pdfRenderer"
           :scanRenderer="scanRenderer"
           :scale="config.scale"
+          :signature-overlay="signatureOverlay"
         />
       </n-grid-item>
     </n-grid>

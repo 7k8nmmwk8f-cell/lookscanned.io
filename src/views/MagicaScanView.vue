@@ -9,6 +9,8 @@
           <PDFUpload @update:pdf="pdf = $event" />
           <PDFInfo :pdf="pdf" v-if="pdf" />
 
+          <SignatureStampCard v-model="signatureOverlay" :num-pages="numPages" />
+
           <ScanSettingsCard v-model:config="config" />
 
           <SaveButtonCard
@@ -24,6 +26,7 @@
           :pdfRenderer="pdfRenderer"
           :scanRenderer="scanRenderer"
           :scale="config.scale"
+          :signature-overlay="signatureOverlay"
         />
       </n-grid-item>
     </n-grid>
@@ -46,6 +49,8 @@ import PreviewCompare from '@/components/page-preview/PreviewCompare.vue'
 import SaveButtonCard from '@/components/save-button/SaveButtonCard.vue'
 import { useSaveScannedPDF } from '@/composables/save-scanned-pdf'
 import PDFInfo from '@/components/pdf-upload/PDFInfo.vue'
+import SignatureStampCard from '@/components/signature-stamp/SignatureStampCard.vue'
+import { defaultSignatureOverlay, type SignatureOverlay } from '@/utils/signature-overlay'
 import { ScanCacher } from '@/utils/scan-renderer/scan-cacher'
 import { useMessage } from 'naive-ui'
 
@@ -58,6 +63,8 @@ useHead({
 })
 
 const pdf = ref<File | undefined>(undefined)
+const signatureOverlay = ref<SignatureOverlay>({ ...defaultSignatureOverlay })
+const numPages = ref(1)
 
 const initExamplePDF = async () => {
   const response = await fetch(PDFURL)
@@ -77,6 +84,10 @@ const pdfRenderer = computed(() => {
   return new PDF(pdf.value)
 })
 
+watch(pdfRenderer, async (renderer) => {
+  numPages.value = renderer ? await renderer.getNumPages() : 1
+}, { immediate: true })
+
 const scanRenderer = ref(new ScanCacher(new MagicaScanner(config.value)))
 watch(
   config,
@@ -92,7 +103,8 @@ const { save, progress, saving, scannedPDF } = useSaveScannedPDF(
   pdf,
   pdfRenderer,
   scanRenderer,
-  scale
+  scale,
+  signatureOverlay
 )
 
 const generate = async () => {

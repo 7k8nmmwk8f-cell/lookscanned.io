@@ -3,7 +3,7 @@
     <n-space vertical :size="12">
       <n-text strong>{{ isFrench ? 'Signature / tampon' : 'Signature / stamp' }}</n-text>
       <n-text depth="3" style="font-size: 12px">
-        {{ isFrench ? 'Ajoute une image PNG/JPG. Le fond blanc peut être retiré automatiquement.' : 'Add a PNG/JPG image. White background can be removed automatically.' }}
+        {{ isFrench ? 'Ajoute une image PNG/JPG. Le fond clair connecté aux bords sera retiré automatiquement.' : 'Add a PNG/JPG image. Light background connected to the edges will be removed automatically.' }}
       </n-text>
       <input type="file" accept="image/png,image/jpeg,image/webp" @change="onFileChange" />
       <n-button v-if="modelValue.image" size="small" secondary @click="removeImage">
@@ -11,7 +11,7 @@
       </n-button>
       <template v-if="modelValue.image">
         <n-checkbox v-model:checked="removeWhite" @update:checked="reprocess">
-          {{ isFrench ? 'Retirer le fond blanc' : 'Remove white background' }}
+          {{ isFrench ? 'Retirer le fond' : 'Remove background' }}
         </n-checkbox>
         <n-text>{{ isFrench ? 'Position horizontale' : 'Horizontal position' }}: {{ modelValue.x }}%</n-text>
         <n-slider v-model:value="modelValue.x" :min="0" :max="100" />
@@ -54,34 +54,96 @@ function update(patch: Partial<SignatureOverlay>) {
   emit('update:modelValue', { ...props.modelValue, ...patch })
 }
 
+/**
+ * Remove the light paper/photo background that touches the image edges.
+ * Unlike a simple "almost white" threshold, edge-connected flood fill also
+ * handles uneven grey scanner backgrounds while preserving dark stamp ink.
+ */
 async function processImage(file: File) {
   originalFile.value = file
   if (!removeWhite.value) {
     update({ image: file })
     return
   }
+
   const bitmap = await createImageBitmap(file)
   const canvas = document.createElement('canvas')
   canvas.width = bitmap.width
   canvas.height = bitmap.height
-  const context = canvas.getContext('2d')
+  const context = canvas.getContext('2d', { willReadFrequently: true })
   if (!context) {
     update({ image: file })
     bitmap.close()
     return
   }
+
   context.drawImage(bitmap, 0, 0)
   bitmap.close()
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
   const data = imageData.data
-  for (let i = 0; i < data.length; i += 4) {
-    const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3
-    if (brightness > 242 && Math.max(data[i], data[i + 1], data[i + 2]) - Math.min(data[i], data[i + 1], data[i + 2]) < 24) {
-      data[i + 3] = 0
-    } else if (brightness > 210) {
-      data[i + 3] = Math.round(data[i + 3] * (242 - brightness) / 32)
+  const width = canvas.width
+  const height = canvas.height
+  const total = width * height
+  const visited = new Uint8Array(total)
+  const queue = new Int32Array(total)
+  let head = 0
+  let tail = 0
+
+  const isBackgroundCandidate = (pixel: number) => {
+    const i = pixel * 4
+    const r = data[i]
+    const g = data[i + 1]
+    const b = data[i + 2]
+    const brightness = (r + g + b) / 3
+    const chroma = Math.max(r, g, b) - Math.min(r, g, b)
+    // Bright/light grey paper, including slightly mottled scans. Dark ink is
+    // deliberately excluded so letters and stamp outlines stay opaque.
+    return brightness >= 132 && chroma <= 82
+  }
+
+  const addSeed = (pixel: number) => {
+    if (!visited[pixel] && isBackgroundCandidate(pixel)) {
+      visited[pixel] = 1
+      queue[tail++] = pixel
     }
   }
+
+  // Seed all four edges so only background connected to the outside is removed.
+  for (let x = 0; x < width; x++) {
+    addSeed(x)
+    addSeed((height - 1) * width + x)
+  }
+  for (let y = 0; y < height; y++) {
+    addSeed(y * width)
+    addSeed(y * width + width - 1)
+  }
+
+  while (head < tail) {
+    const pixel = queue[head++]
+    const x = pixel % width
+    const y = Math.floor(pixel / width)
+    if (x > 0) addSeed(pixel - 1)
+    if (x + 1 < width) addSeed(pixel + 1)
+    if (y > 0) addSeed(pixel - width)
+    if (y + 1 < height) addSeed(pixel + width)
+  }
+
+  // Make the removed paper transparent and soften its boundary to reduce halos.
+  for (let pixel = 0; pixel < total; pixel++) {
+    const i = pixel * 4
+    if (visited[pixel]) {
+      data[i + 3] = 0
+    } else {
+      const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3
+      const chroma = Math.max(data[i], data[i + 1], data[i + 2]) - Math.min(data[i], data[i + 1], data[i + 2])
+      // Fade pale anti-aliased pixels just inside the ink edge without
+      // washing out the dark stamp lettering.
+      if (brightness > 188 && chroma < 65) {
+        data[i + 3] = Math.round(data[i + 3] * Math.max(0, (225 - brightness) / 37))
+      }
+    }
+  }
+
   context.putImageData(imageData, 0, 0)
   canvas.toBlob(blob => update({ image: blob || file }), 'image/png')
 }

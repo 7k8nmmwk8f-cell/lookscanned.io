@@ -8,7 +8,7 @@
           <PDFInfo :pdf="pdf" v-if="pdf" />
           <SignatureStampList v-model="signatureOverlay" :num-pages="numPages" />
           <PaperBackgroundCard v-model="paperBackground" />
-          <ScanSettingsCard v-model:config="config" />
+          <ScanSettingsCard v-model:config="config" :default-config="defaultConfig" />
           <SaveButtonCard @generate="generate" :progress="progress" :saving="saving" :pdf="scannedPDF" />
         </n-space>
       </n-grid-item>

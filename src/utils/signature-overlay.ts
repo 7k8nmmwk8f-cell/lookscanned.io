@@ -25,11 +25,21 @@ export const defaultSignatureOverlays = (): SignatureOverlay[] => [
   { ...defaultSignatureOverlay, id: 'stamp-3', x: 50, y: 65 }
 ]
 
-function drawStaple(context: CanvasRenderingContext2D, w: number, h: number) {
+function drawStaple(context: CanvasRenderingContext2D, w: number, h: number, firstPage: boolean) {
   const x = w * 0.055
   const y = h * 0.032
   const stapleWidth = w * 0.033
   const stapleHeight = stapleWidth * 0.19
+  if (!firstPage) {
+    context.save()
+    context.fillStyle = 'rgba(35,35,35,0.32)'
+    context.beginPath()
+    context.ellipse(x - stapleWidth * 0.34, y + stapleHeight * 1.15, stapleWidth * 0.07, stapleHeight * 0.22, 0, 0, Math.PI * 2)
+    context.ellipse(x + stapleWidth * 0.34, y + stapleHeight * 1.15, stapleWidth * 0.07, stapleHeight * 0.22, 0, 0, Math.PI * 2)
+    context.fill()
+    context.restore()
+    return
+  }
   context.save()
   context.translate(x, y)
   context.rotate(-Math.PI / 7)
@@ -64,17 +74,48 @@ function drawStaple(context: CanvasRenderingContext2D, w: number, h: number) {
   context.restore()
 }
 
+export interface DocumentOptions { staple: boolean; foldedCorner: boolean }
+
+function drawFoldedCorner(context: CanvasRenderingContext2D, w: number, h: number) {
+  const size = Math.min(w, h) * 0.055
+  context.save()
+  context.beginPath()
+  context.moveTo(w - size, 0)
+  context.lineTo(w, size)
+  context.lineTo(w, 0)
+  context.closePath()
+  context.fillStyle = 'rgba(0,0,0,0.13)'
+  context.fill()
+  context.beginPath()
+  context.moveTo(w - size, 0)
+  context.lineTo(w - size * 0.12, size * 0.12)
+  context.lineTo(w, size)
+  context.lineTo(w, 0)
+  context.closePath()
+  const fold = context.createLinearGradient(w-size, 0, w, size)
+  fold.addColorStop(0, '#f7f4ff')
+  fold.addColorStop(1, '#c8c1dc')
+  context.fillStyle = fold
+  context.fill()
+  context.strokeStyle = 'rgba(70,60,100,0.22)'
+  context.lineWidth = Math.max(1, w * 0.0008)
+  context.beginPath(); context.moveTo(w-size, 0); context.lineTo(w, size); context.stroke()
+  context.restore()
+}
+
 export async function applySignatureOverlay(
   pageBlob: Blob,
   overlays: SignatureOverlay | SignatureOverlay[] | undefined,
-  pageNumber: number
+  pageNumber: number,
+  options: DocumentOptions = { staple: false, foldedCorner: false },
+  totalPages = pageNumber
 ): Promise<Blob> {
   const list = (Array.isArray(overlays) ? overlays : overlays ? [overlays] : [])
     .filter(item => item.enabled !== false)
   const applicable = list.filter(item => item.page === 0 || item.page === pageNumber)
-  const applyStaple = applicable.some(item => item.staple)
+  const applyStaple = options.staple
   const stamps = applicable.filter(item => !!item.image)
-  if (!applyStaple && stamps.length === 0) return pageBlob
+  if (!applyStaple && !options.foldedCorner && stamps.length === 0) return pageBlob
 
   const pageImage = await createImageBitmap(pageBlob)
   const stampImages = await Promise.all(stamps.map(async overlay => ({
@@ -93,7 +134,8 @@ export async function applySignatureOverlay(
 
   context.drawImage(pageImage, 0, 0)
   // Hardware/metal detail is composited over the PDF content.
-  if (applyStaple) drawStaple(context, canvas.width, canvas.height)
+  if (applyStaple) drawStaple(context, canvas.width, canvas.height, pageNumber === 1)
+  if (options.foldedCorner) drawFoldedCorner(context, canvas.width, canvas.height)
   // Array order is the layer order: later entries are drawn on top.
   for (const { overlay, image } of stampImages) {
     const targetWidth = Math.max(1, canvas.width * overlay.width / 100)

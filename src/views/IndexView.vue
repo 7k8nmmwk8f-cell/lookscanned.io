@@ -22,8 +22,8 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
 useHead({
-  title: t('base.title'),
-  meta: [{ name: 'description', content: t('base.description') }]
+  title: 'The Scanner',
+  meta: [{ name: 'description', content: 'Transforme tes PDF avec des textures papier, des effets de scan et plusieurs tampons ou signatures.' }]
 })
 
 // const breakpoints = { xs: 0, s: 640, m: 1024, l: 1280, xl: 1536, xxl: 1920 };

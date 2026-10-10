@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 import { get } from '@vueuse/core'
 import { ref, computed, watch } from 'vue'
 import { buildPDF } from '@/utils/pdf-builder/pdf-lib'
-import { applySignatureOverlay, type SignatureOverlay } from '@/utils/signature-overlay'
+import { applySignatureOverlay, type SignatureOverlay, type DocumentOptions } from '@/utils/signature-overlay'
 import { applyPaperBackground, type PaperBackgroundStyle } from '@/utils/paper-background'
 
 interface PDFRenderer {
@@ -17,7 +17,8 @@ export function useSaveScannedPDF(
   scanRenderer: Ref<ScanRenderer | undefined>,
   scale: Ref<number>,
   signatureOverlay?: Ref<SignatureOverlay[]>,
-  paperBackground?: Ref<PaperBackgroundStyle>
+  paperBackground?: Ref<PaperBackgroundStyle>,
+  documentOptions?: Ref<DocumentOptions>
 ) {
   const finishedPages = ref(0)
   const totalPages = ref(0)
@@ -34,6 +35,7 @@ export function useSaveScannedPDF(
   watch(scale, reset)
   if (signatureOverlay) watch(signatureOverlay, reset, { deep: true })
   if (paperBackground) watch(paperBackground, reset)
+  if (documentOptions) watch(documentOptions, reset, { deep: true })
 
   const save = async () => {
     try {
@@ -46,7 +48,7 @@ export function useSaveScannedPDF(
       const scanPages = await Promise.all(pages.map(async page => {
         const { blob: pdfPage, height, width } = await pdf.renderPage(page, scale_)
         const paperPage = await applyPaperBackground(pdfPage, paperBackground ? get(paperBackground) : undefined, page)
-        const composedPage = await applySignatureOverlay(paperPage, signatureOverlay ? get(signatureOverlay) : undefined, page)
+        const composedPage = await applySignatureOverlay(paperPage, signatureOverlay ? get(signatureOverlay) : undefined, page, documentOptions ? get(documentOptions) : undefined)
         const { blob: scanPage } = await scan.renderPage(composedPage)
         finishedPages.value += 1
         return { blob: scanPage, width, height, ppi: scale_ * 72 }

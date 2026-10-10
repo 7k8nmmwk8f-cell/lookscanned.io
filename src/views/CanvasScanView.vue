@@ -6,7 +6,7 @@
         <n-space vertical>
           <PDFUpload @update:pdf="pdf = $event" />
           <PDFInfo :pdf="pdf" v-if="pdf" />
-          <SignatureStampCard v-model="signatureOverlay" :num-pages="numPages" />
+          <SignatureStampList v-model="signatureOverlay" :num-pages="numPages" />
           <PaperBackgroundCard v-model="paperBackground" />
           <ScanSettingsCard v-model:config="config" />
           <SaveButtonCard @generate="generate" :progress="progress" :saving="saving" :pdf="scannedPDF" />
@@ -35,8 +35,8 @@ import PreviewCompare from '@/components/page-preview/PreviewCompare.vue'
 import SaveButtonCard from '@/components/save-button/SaveButtonCard.vue'
 import { useSaveScannedPDF } from '@/composables/save-scanned-pdf'
 import PDFInfo from '@/components/pdf-upload/PDFInfo.vue'
-import SignatureStampCard from '@/components/signature-stamp/SignatureStampCard.vue'
-import { defaultSignatureOverlay, type SignatureOverlay } from '@/utils/signature-overlay'
+import SignatureStampList from '@/components/signature-stamp/SignatureStampList.vue'
+import { defaultSignatureOverlays, type SignatureOverlay } from '@/utils/signature-overlay'
 import PaperBackgroundCard from '@/components/paper-background/PaperBackgroundCard.vue'
 import { type PaperBackgroundStyle } from '@/utils/paper-background'
 import { ScanCacher } from '@/utils/scan-renderer/scan-cacher'
@@ -45,7 +45,7 @@ const { t } = useI18n()
 const message = useMessage()
 useHead({ title: t('base.scanTitle') + ' - ' + t('base.title'), meta: [{ name: 'description', content: t('base.description') }] })
 const pdf = ref<File | undefined>(undefined)
-const signatureOverlay = ref<SignatureOverlay>({ ...defaultSignatureOverlay })
+const signatureOverlay = ref<SignatureOverlay[]>(defaultSignatureOverlays())
 const paperBackground = ref<PaperBackgroundStyle>('none')
 const numPages = ref(1)
 const initExamplePDF = async () => {

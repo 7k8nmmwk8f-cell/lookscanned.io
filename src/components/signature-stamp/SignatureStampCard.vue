@@ -6,9 +6,6 @@
         {{ isFrench ? 'Ajoute une image PNG/JPG. Le fond clair connecté aux bords sera retiré automatiquement.' : 'Add a PNG/JPG image. Light background connected to the edges will be removed automatically.' }}
       </n-text>
       <input type="file" accept="image/png,image/jpeg,image/webp" @change="onFileChange" />
-      <n-checkbox v-model:checked="stapleEnabled" @update:checked="setStaple">
-        {{ isFrench ? 'Ajouter une agrafe en haut à gauche (par-dessus le PDF)' : 'Add a staple at top left (over the PDF)' }}
-      </n-checkbox>
       <n-button v-if="modelValue.image" size="small" secondary @click="removeImage">{{ isFrench ? 'Retirer le tampon' : 'Remove stamp' }}</n-button>
       <template v-if="modelValue.image">
         <n-checkbox v-model:checked="removeWhite" @update:checked="reprocess">{{ isFrench ? 'Retirer le fond' : 'Remove background' }}</n-checkbox>
@@ -38,15 +35,12 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: SignatureOverlay): vo
 const { locale } = useI18n()
 const isFrench = computed(() => locale.value.startsWith('fr'))
 const removeWhite = ref(true)
-const stapleEnabled = ref(!!props.modelValue.staple)
-watch(() => props.modelValue.staple, value => { stapleEnabled.value = !!value })
 const originalFile = ref<File | undefined>()
 const pageOptions = computed(() => [
   { label: isFrench.value ? 'Toutes les pages' : 'All pages', value: 0 },
   ...Array.from({ length: props.numPages || 1 }, (_, i) => ({ label: 'Page ' + (i + 1), value: i + 1 }))
 ])
 function update(patch: Partial<SignatureOverlay>) { emit('update:modelValue', { ...props.modelValue, ...patch }) }
-function setStaple(value: boolean) { stapleEnabled.value = value; update({ staple: value }) }
 
 async function processImage(file: File) {
   originalFile.value = file

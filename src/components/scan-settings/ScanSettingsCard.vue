@@ -18,14 +18,14 @@
             <div class="toggle-panel"><BorderSetting v-model:border="config.border" /></div>
           </div>
           <div class="slider-panel">
-            <div class="slider-setting"><div class="setting-value"><span>{{ t('settings.rotate') }}</span><n-tag size="small" :bordered="false">{{ config.rotate.toFixed(1) }}°</n-tag></div><RotateSetting v-model:rotate="config.rotate" /></div>
-            <div class="slider-setting"><div class="setting-value"><span>{{ t('settings.rotateVariance') }}</span><n-tag size="small" :bordered="false">±{{ config.rotate_var.toFixed(1) }}°</n-tag></div><RotateVarianceSetting v-model:rotate_var="config.rotate_var" /></div>
-            <div class="slider-setting"><div class="setting-value"><span>{{ t('settings.brightness') }}</span><n-tag size="small" :bordered="false">{{ config.brightness.toFixed(2) }}</n-tag></div><BrightnessSetting v-model:brightness="config.brightness" /></div>
-            <div class="slider-setting"><div class="setting-value"><span>{{ t('settings.yellowish') }}</span><n-tag size="small" :bordered="false">{{ config.yellowish.toFixed(2) }}</n-tag></div><YellowishSetting v-model:yellowish="config.yellowish" /></div>
-            <div class="slider-setting"><div class="setting-value"><span>{{ t('settings.contrast') }}</span><n-tag size="small" :bordered="false">{{ config.contrast.toFixed(2) }}</n-tag></div><ContrastSetting v-model:contrast="config.contrast" /></div>
-            <div class="slider-setting"><div class="setting-value"><span>{{ t('settings.blur') }}</span><n-tag size="small" :bordered="false">{{ config.blur.toFixed(2) }}</n-tag></div><BlurSetting v-model:blur="config.blur" /></div>
-            <div class="slider-setting"><div class="setting-value"><span>{{ t('settings.noise') }}</span><n-tag size="small" :bordered="false">{{ config.noise.toFixed(2) }}</n-tag></div><NoiseSetting v-model:noise="config.noise" /></div>
-            <div class="slider-setting"><div class="setting-value"><span>{{ t('settings.scale') }}</span><n-tag size="small" :bordered="false">{{ config.scale.toFixed(1) }}×</n-tag></div><ScaleSetting v-model:scale="config.scale" /></div>
+            <div class="slider-setting"><div class="setting-value"><n-tag size="small" :bordered="false">{{ config.rotate.toFixed(1) }}°</n-tag></div><RotateSetting v-model:rotate="config.rotate" /></div>
+            <div class="slider-setting"><div class="setting-value"><n-tag size="small" :bordered="false">±{{ config.rotate_var.toFixed(1) }}°</n-tag></div><RotateVarianceSetting v-model:rotate_var="config.rotate_var" /></div>
+            <div class="slider-setting"><div class="setting-value"><n-tag size="small" :bordered="false">{{ config.brightness.toFixed(2) }}</n-tag></div><BrightnessSetting v-model:brightness="config.brightness" /></div>
+            <div class="slider-setting"><div class="setting-value"><n-tag size="small" :bordered="false">{{ config.yellowish.toFixed(2) }}</n-tag></div><YellowishSetting v-model:yellowish="config.yellowish" /></div>
+            <div class="slider-setting"><div class="setting-value"><n-tag size="small" :bordered="false">{{ config.contrast.toFixed(2) }}</n-tag></div><ContrastSetting v-model:contrast="config.contrast" /></div>
+            <div class="slider-setting"><div class="setting-value"><n-tag size="small" :bordered="false">{{ config.blur.toFixed(2) }}</n-tag></div><BlurSetting v-model:blur="config.blur" /></div>
+            <div class="slider-setting"><div class="setting-value"><n-tag size="small" :bordered="false">{{ config.noise.toFixed(2) }}</n-tag></div><NoiseSetting v-model:noise="config.noise" /></div>
+            <div class="slider-setting"><div class="setting-value"><n-tag size="small" :bordered="false">{{ config.scale.toFixed(1) }}×</n-tag></div><ScaleSetting v-model:scale="config.scale" /></div>
           </div>
         </div>
       </n-collapse-item>
@@ -93,23 +93,23 @@ function randomizeSettings() {
 </script>
 
 <style scoped>
-.customization-card { overflow: hidden; border-color: rgba(255, 212, 0, 0.18); }
+.customization-card { overflow: hidden; border-color: rgba(155, 123, 255, 0.22); }
 .customization-layout { display:flex; flex-direction:column; gap:18px; }
 .customization-toggles { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
-.toggle-panel { min-width:0; padding:12px 12px 4px; border:1px solid rgba(255,212,0,.16); border-radius:12px; background:rgba(255,212,0,.035); }
+.toggle-panel { min-width:0; padding:12px 12px 4px; border:1px solid rgba(155,123,255,.18); border-radius:12px; background:rgba(155,123,255,.045); }
 .toggle-panel :deep(.n-form-item) { margin-bottom:0; }
 .slider-panel { display:flex; flex-direction:column; gap:5px; }
 .slider-setting { padding:8px 0 4px; border-bottom:1px solid rgba(255,255,255,.055); }
 .slider-setting:last-child { border-bottom:0; }
 .slider-setting :deep(.n-form-item) { margin-bottom:0; }
 .slider-setting :deep(.n-form-item-label) { padding-bottom:7px; font-weight:500; letter-spacing:.005em; }
-.slider-setting :deep(.n-slider-rail__fill) { background-color:#ffd400 !important; }
-.slider-setting :deep(.n-slider-handle) { border-color:#ffd400; }
-.customization-icon { color:#ffd400; }
+.slider-setting :deep(.n-slider-rail__fill) { background-color:#9b7bff !important; }
+.slider-setting :deep(.n-slider-handle) { border-color:#9b7bff; }
+.customization-icon { color:#9b7bff; }
 .setting-value { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:3px; font-weight:500; }
-.setting-value :deep(.n-tag) { color:#ffd400; background:rgba(255,212,0,.1); font-variant-numeric:tabular-nums; }
+.setting-value :deep(.n-tag) { color:#9b7bff; background:rgba(155,123,255,.12); font-variant-numeric:tabular-nums; }
 .quick-tools { display:flex; flex-direction:column; gap:10px; padding:0 0 18px; }
-.preset-heading { font-size:13px; font-weight:600; color:#ffd400; letter-spacing:.03em; text-transform:uppercase; }
+.preset-heading { font-size:13px; font-weight:600; color:#9b7bff; letter-spacing:.03em; text-transform:uppercase; }
 .action-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 @media (min-width:900px) { .customization-layout { gap:22px; } .slider-panel { gap:8px; } }
 </style>

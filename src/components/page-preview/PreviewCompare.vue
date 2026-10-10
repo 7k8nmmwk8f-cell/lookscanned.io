@@ -29,7 +29,7 @@
 <script lang="ts" setup>
 import SideBySidePreview from './SideBySidePreview.vue'
 import ImagePreview from './ImagePreview.vue'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { computedAsync, useObjectUrl } from '@vueuse/core'
 import PreviewPagination from './PreviewPagination.vue'
 import { applySignatureOverlay, type SignatureOverlay } from '@/utils/signature-overlay'
@@ -39,8 +39,6 @@ import { NSpace } from 'naive-ui'
 const page = ref(1)
 const scanning = ref(false)
 const dragging = ref(false)
-const stage = ref<HTMLElement>()
-const signatureUrl = useObjectUrl(computed(() => props.signatureOverlay?.image))
 
 interface PDFRenderer {
   renderPage(page: number, scale: number): Promise<{ blob: Blob; width: number; height: number }>
@@ -58,6 +56,7 @@ const props = defineProps<{
   paperBackground?: PaperBackgroundStyle
 }>()
 const emit = defineEmits<{ (e: 'update:signatureOverlay', value: SignatureOverlay): void }>()
+const signatureUrl = useObjectUrl(computed(() => props.signatureOverlay?.image))
 
 const image = computedAsync(async () => {
   const renderer = props.pdfRenderer
@@ -99,7 +98,7 @@ let controller = new AbortController()
 const scanImage = computedAsync(async () => {
   controller.abort()
   controller = new AbortController()
-  // Read reactive inputs before the first await so changes trigger a new render.
+  // Capture reactive dependencies synchronously before awaiting any image work.
   const source = image.value?.blob
   const renderer = props.scanRenderer
   const overlay = props.signatureOverlay ? { ...props.signatureOverlay } : undefined
@@ -117,16 +116,6 @@ const numPages = computedAsync(async () => {
   if (!props.pdfRenderer) return 1
   return await props.pdfRenderer.getNumPages()
 }, 1)
-
-watch(() => props.signatureOverlay && [
-  props.signatureOverlay.image,
-  props.signatureOverlay.x,
-  props.signatureOverlay.y,
-  props.signatureOverlay.width,
-  props.signatureOverlay.page
-], () => {
-  // The scan computedAsync tracks the primitive overlay fields above.
-})
 </script>
 
 <style scoped>

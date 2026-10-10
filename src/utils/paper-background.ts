@@ -1,11 +1,13 @@
-export type PaperBackgroundStyle = 'none' | 'folded' | 'crumpled' | 'creased' | 'photocopy'
+export type PaperBackgroundStyle = 'none' | 'folded' | 'crumpled' | 'creased' | 'photocopy' | 'double-fold' | 'soft-folds'
 
 export const paperBackgroundOptions = [
   { label: 'Aucun fond', value: 'none' },
   { label: 'Papier plié', value: 'folded' },
   { label: 'Papier froissé', value: 'crumpled' },
   { label: 'Feuille marquée', value: 'creased' },
-  { label: 'Photocopie ancienne', value: 'photocopy' }
+  { label: 'Photocopie ancienne', value: 'photocopy' },
+  { label: 'Deux plis horizontaux', value: 'double-fold' },
+  { label: 'Plis doux réalistes', value: 'soft-folds' }
 ] as const
 
 export async function applyPaperBackground(
@@ -32,6 +34,10 @@ export async function applyPaperBackground(
     base.addColorStop(0, '#e8e8e8')
     base.addColorStop(0.45, '#f6f5f1')
     base.addColorStop(1, '#e4e3df')
+  } else if (style === 'double-fold' || style === 'soft-folds') {
+    base.addColorStop(0, '#faf9f7')
+    base.addColorStop(0.48, '#fffefd')
+    base.addColorStop(1, '#f4f4f2')
   } else {
     base.addColorStop(0, style === 'crumpled' ? '#f0efea' : '#f5f4f0')
     base.addColorStop(0.5, '#fffefa')
@@ -47,13 +53,12 @@ export async function applyPaperBackground(
   }
   const grain = ctx.getImageData(0, 0, w, h)
   const d = grain.data
-  const strength = style === 'photocopy' ? 13 : style === 'crumpled' ? 8 : 4
+  const strength = style === 'photocopy' ? 13 : style === 'crumpled' ? 8 : style === 'double-fold' || style === 'soft-folds' ? 3 : 4
   for (let i = 0; i < d.length; i += 4) {
     const n = Math.round((random() - 0.5) * strength)
     d[i] = Math.max(0, Math.min(255, d[i] + n))
     d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + n))
-    d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + n)
-    )
+    d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + n))
   }
   ctx.putImageData(grain, 0, 0)
 
@@ -74,7 +79,46 @@ export async function applyPaperBackground(
     ctx.restore()
   }
 
-  if (style === 'folded') {
+  if (style === 'double-fold') {
+    // Like a sheet folded into thirds and opened again: two long, imperfect
+    // horizontal creases with subtle cool-grey shadows and pale highlights.
+    const first = 0.32 + (random() - 0.5) * 0.045
+    const second = 0.68 + (random() - 0.5) * 0.045
+    crease(false, first, 0.095 + random() * 0.025, Math.max(3, h * 0.006))
+    crease(false, second, 0.075 + random() * 0.025, Math.max(3, h * 0.005))
+    // A slight edge shadow and a few tiny paper specks make it feel scanned.
+    const edge = ctx.createLinearGradient(0, 0, w, 0)
+    edge.addColorStop(0, 'rgba(125,145,155,0.07)')
+    edge.addColorStop(0.08, 'rgba(255,255,255,0)')
+    edge.addColorStop(0.92, 'rgba(255,255,255,0)')
+    edge.addColorStop(1, 'rgba(125,145,155,0.06)')
+    ctx.fillStyle = edge
+    ctx.fillRect(0, 0, w, h)
+    const specks = Math.max(18, Math.floor(w * h / 18000))
+    for (let i = 0; i < specks; i++) {
+      const x = random() * w
+      const y = random() * h
+      ctx.fillStyle = `rgba(70,75,78,${0.035 + random() * 0.05})`
+      ctx.fillRect(x, y, Math.max(1, w * 0.001), Math.max(1, h * 0.0007))
+    }
+  } else if (style === 'soft-folds') {
+    // A quieter variant with diagonal and gently curved-looking fold bands.
+    crease(false, 0.29 + (random() - 0.5) * 0.1, 0.055 + random() * 0.025, Math.max(3, h * 0.004))
+    crease(true, 0.53 + (random() - 0.5) * 0.12, 0.035 + random() * 0.025, Math.max(3, w * 0.003))
+    const count = 4 + Math.floor(random() * 4)
+    for (let i = 0; i < count; i++) {
+      const x = random() * w
+      const y = random() * h
+      const len = Math.min(w, h) * (0.06 + random() * 0.12)
+      const angle = random() * Math.PI
+      ctx.beginPath()
+      ctx.moveTo(x, y)
+      ctx.quadraticCurveTo(x + Math.cos(angle + 0.35) * len * 0.5, y + Math.sin(angle + 0.35) * len * 0.5, x + Math.cos(angle) * len, y + Math.sin(angle) * len)
+      ctx.strokeStyle = random() > 0.5 ? 'rgba(100,110,115,0.045)' : 'rgba(255,255,255,0.22)'
+      ctx.lineWidth = Math.max(2, w * 0.002)
+      ctx.stroke()
+    }
+  } else if (style === 'folded') {
     const primaryVertical = random() > 0.5
     const primaryPosition = 0.36 + random() * 0.3
     const secondaryPosition = 0.35 + random() * 0.3
@@ -130,8 +174,6 @@ export async function applyPaperBackground(
     const r = pixels[i]
     const g = pixels[i + 1]
     const b = pixels[i + 2]
-    // Use distance from white to retain colored marks as well as black text.
-    // A small white threshold avoids leaving a visible pale rectangle.
     const darkness = 255 - (0.299 * r + 0.587 * g + 0.114 * b)
     pixels[i + 3] = Math.round(Math.max(0, Math.min(255, (darkness - 3) * 1.35)))
   }

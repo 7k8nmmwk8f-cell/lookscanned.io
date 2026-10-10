@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme="theme">
+  <n-config-provider :theme="darkTheme" :theme-overrides="themeOverrides">
     <n-global-style />
     <n-message-provider>
       <main class="view"><RouterView :key="route.fullPath" /></main>
@@ -9,14 +9,18 @@
 </template>
 
 <script lang="ts" setup>
-import { useOsTheme, darkTheme, NConfigProvider, NGlobalStyle, NMessageProvider } from 'naive-ui'
-import { RouterView } from 'vue-router'
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { darkTheme, NConfigProvider, NGlobalStyle, NMessageProvider } from 'naive-ui'
+import { RouterView, useRoute } from 'vue-router'
 import ServieWorkerReloadPrompt from '@/components/Misc/ServiceWorkerReloadPrompt.vue'
 
 const route = useRoute()
-
-const osThemeRef = useOsTheme()
-const theme = computed(() => (osThemeRef.value === 'dark' ? darkTheme : null))
+const themeOverrides = {
+  common: {
+    primaryColor: '#655cff',
+    primaryColorHover: '#7b73ff',
+    primaryColorPressed: '#5148e5',
+    primaryColorSuppl: '#817aff',
+    borderRadius: '10px'
+  }
+}
 </script>

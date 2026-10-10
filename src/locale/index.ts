@@ -2,13 +2,13 @@ import { createI18n } from 'vue-i18n'
 
 import { en } from './en'
 import { zhCN } from './zh-CN'
+import { fr } from './fr'
 
-const currentLocale = navigator?.language
+const browserLanguage = typeof navigator !== 'undefined' ? navigator.language.toLowerCase() : 'en'
+const currentLocale = browserLanguage.startsWith('fr') ? 'fr' : browserLanguage.startsWith('zh') ? 'zh' : 'en'
 
 type DeepPartial<T> = T extends object
-  ? {
-      [P in keyof T]?: DeepPartial<T[P]>
-    }
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
   : T
 
 const i18n = createI18n({
@@ -17,7 +17,8 @@ const i18n = createI18n({
   legacy: false,
   messages: {
     en,
-    zh: zhCN
+    zh: zhCN,
+    fr
   } as { [key: string]: DeepPartial<typeof en> }
 })
 

@@ -7,13 +7,14 @@
           <PDFUpload @update:pdf="pdf = $event" />
           <PDFInfo :pdf="pdf" v-if="pdf" />
           <SignatureStampList v-model="signatureOverlay" :num-pages="numPages" />
+          <DocumentOptionsCard v-model="documentOptions" />
           <PaperBackgroundCard v-model="paperBackground" />
           <ScanSettingsCard v-model:config="config" :default-config="defaultConfig" />
           <SaveButtonCard @generate="generate" :progress="progress" :saving="saving" :pdf="scannedPDF" />
         </n-space>
       </n-grid-item>
       <n-grid-item span="12 s:7 m:8 l:9">
-        <PreviewCompare :pdfRenderer="pdfRenderer" :scanRenderer="scanRenderer" :scale="config.scale" v-model:signature-overlay="signatureOverlay" :paper-background="paperBackground" />
+        <PreviewCompare :pdfRenderer="pdfRenderer" :scanRenderer="scanRenderer" :scale="config.scale" v-model:signature-overlay="signatureOverlay" :paper-background="paperBackground" :document-options="documentOptions" />
       </n-grid-item>
     </n-grid>
   </MainContainer>
@@ -38,7 +39,9 @@ import PDFInfo from '@/components/pdf-upload/PDFInfo.vue'
 import SignatureStampList from '@/components/signature-stamp/SignatureStampList.vue'
 import { defaultSignatureOverlays, type SignatureOverlay } from '@/utils/signature-overlay'
 import PaperBackgroundCard from '@/components/paper-background/PaperBackgroundCard.vue'
+import DocumentOptionsCard from '@/components/document-options/DocumentOptionsCard.vue'
 import { type PaperBackgroundStyle } from '@/utils/paper-background'
+import { type DocumentOptions } from '@/utils/signature-overlay'
 import { ScanCacher } from '@/utils/scan-renderer/scan-cacher'
 
 const { t } = useI18n()
@@ -47,6 +50,7 @@ useHead({ title: 'The Scanner - ' + t('base.scanTitle'), meta: [{ name: 'descrip
 const pdf = ref<File | undefined>(undefined)
 const signatureOverlay = ref<SignatureOverlay[]>(defaultSignatureOverlays())
 const paperBackground = ref<PaperBackgroundStyle>('none')
+const documentOptions = ref<DocumentOptions>({ staple: false, foldedCorner: false })
 const numPages = ref(1)
 const initExamplePDF = async () => {
   const response = await fetch(PDFURL)
@@ -61,7 +65,7 @@ watch(pdfRenderer, async (renderer) => { numPages.value = renderer ? await rende
 const scanRenderer = ref(new ScanCacher(new CanvasScanner(config.value)))
 watch(config, (newConfig) => { scanRenderer.value = new ScanCacher(new CanvasScanner(newConfig)) }, { deep: true })
 const scale = computed(() => config.value.scale)
-const { save, progress, saving, scannedPDF } = useSaveScannedPDF(pdf, pdfRenderer, scanRenderer, scale, signatureOverlay, paperBackground)
+const { save, progress, saving, scannedPDF } = useSaveScannedPDF(pdf, pdfRenderer, scanRenderer, scale, signatureOverlay, paperBackground, documentOptions)
 const generate = async () => {
   try { await save(); message.success(t('actions.generateSuccess')) }
   catch (e) { message.error(t('actions.generateError') + (e as Error).message) }

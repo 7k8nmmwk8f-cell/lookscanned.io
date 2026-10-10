@@ -9,13 +9,9 @@
       <n-checkbox v-model:checked="stapleEnabled" @update:checked="setStaple">
         {{ isFrench ? 'Ajouter une agrafe en haut à gauche (par-dessus le PDF)' : 'Add a staple at top left (over the PDF)' }}
       </n-checkbox>
-      <n-button v-if="modelValue.image" size="small" secondary @click="removeImage">
-        {{ isFrench ? 'Retirer le tampon' : 'Remove stamp' }}
-      </n-button>
+      <n-button v-if="modelValue.image" size="small" secondary @click="removeImage">{{ isFrench ? 'Retirer le tampon' : 'Remove stamp' }}</n-button>
       <template v-if="modelValue.image">
-        <n-checkbox v-model:checked="removeWhite" @update:checked="reprocess">
-          {{ isFrench ? 'Retirer le fond' : 'Remove background' }}
-        </n-checkbox>
+        <n-checkbox v-model:checked="removeWhite" @update:checked="reprocess">{{ isFrench ? 'Retirer le fond' : 'Remove background' }}</n-checkbox>
         <n-text>{{ isFrench ? 'Position horizontale' : 'Horizontal position' }}: {{ modelValue.x }}%</n-text>
         <n-slider v-model:value="modelValue.x" :min="0" :max="100" />
         <n-text>{{ isFrench ? 'Position verticale' : 'Vertical position' }}: {{ modelValue.y }}%</n-text>
@@ -24,9 +20,7 @@
         <n-slider v-model:value="modelValue.width" :min="5" :max="60" />
         <n-text>{{ isFrench ? 'Appliquer sur' : 'Apply to' }}</n-text>
         <n-select v-model:value="modelValue.page" :options="pageOptions" />
-        <n-text depth="3" style="font-size: 12px">
-          {{ isFrench ? 'Les éléments sont superposés dans l’ordre : le tampon 3 passe au-dessus du 2 et du 1.' : 'Layers follow order: stamp 3 appears above stamps 2 and 1.' }}
-        </n-text>
+        <n-text depth="3" style="font-size: 12px">{{ isFrench ? 'Les éléments sont superposés dans l’ordre : le tampon 3 passe au-dessus du 2 et du 1.' : 'Layers follow order: stamp 3 appears above stamps 2 and 1.' }}</n-text>
       </template>
     </n-space>
   </n-card>
@@ -39,14 +33,13 @@ import type { SignatureOverlay } from '@/utils/signature-overlay'
 import { defaultSignatureOverlay } from '@/utils/signature-overlay'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ modelValue: SignatureOverlay; numPages?: number; label?: string }>()
+const props = defineProps<{ modelValue: SignatureOverlay; numPages?: number; label?: string }>()
 const emit = defineEmits<{ (e: 'update:modelValue', value: SignatureOverlay): void }>()
 const { locale } = useI18n()
 const isFrench = computed(() => locale.value.startsWith('fr'))
 const removeWhite = ref(true)
-const stapleEnabled = ref(false)
+const stapleEnabled = ref(!!props.modelValue.staple)
 watch(() => props.modelValue.staple, value => { stapleEnabled.value = !!value })
-const props = defineProps<{ modelValue: SignatureOverlay; numPages?: number; label?: string }>()
 const originalFile = ref<File | undefined>()
 const pageOptions = computed(() => [
   { label: isFrench.value ? 'Toutes les pages' : 'All pages', value: 0 },

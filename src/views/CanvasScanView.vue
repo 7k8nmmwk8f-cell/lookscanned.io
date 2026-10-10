@@ -43,7 +43,7 @@ import { ScanCacher } from '@/utils/scan-renderer/scan-cacher'
 
 const { t } = useI18n()
 const message = useMessage()
-useHead({ title: t('base.scanTitle') + ' - ' + t('base.title'), meta: [{ name: 'description', content: t('base.description') }] })
+useHead({ title: 'The Scanner - ' + t('base.scanTitle'), meta: [{ name: 'description', content: 'Transforme tes PDF avec des textures papier, des effets de scan et plusieurs tampons ou signatures.' }] })
 const pdf = ref<File | undefined>(undefined)
 const signatureOverlay = ref<SignatureOverlay[]>(defaultSignatureOverlays())
 const paperBackground = ref<PaperBackgroundStyle>('none')

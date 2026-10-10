@@ -1,6 +1,6 @@
 <template>
   <MainContainer>
-    <n-grid x-gap="100" y-gap="50" :cols="3" item-responsive responsive="screen" class="index-grid">
+    <n-grid x-gap="36" y-gap="28" :cols="3" item-responsive responsive="screen" class="index-grid">
       <n-grid-item span="3 s:1">
         <TheIndexViewHead />
       </n-grid-item>
@@ -32,7 +32,7 @@ useHead({
 <style scoped>
 @media (min-width: 640px) {
   .index-grid {
-    margin-top: 25vh;
+    margin-top: clamp(24px, 8vh, 88px);
   }
 }
 </style>

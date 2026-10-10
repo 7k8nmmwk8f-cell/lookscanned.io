@@ -35,7 +35,7 @@ const colorspaceSwitch = computed({
 })
 
 const linearGradient =
-  'linear-gradient(to right top, #845ec2, #a55dbd, #c15db5, #d95fab, #ec64a0, #f76e91, #fd7b84, #ff8a7a, #ffa26e, #ffbd66, #ffda65, #f9f871)'
+  'linear-gradient(to right, #b99a00, #ffd400, #fff0a0)'
 
 const railStyle = ({ focused, checked }: { focused: boolean; checked: boolean }) => {
   const style: CSSProperties = {}
@@ -44,12 +44,12 @@ const railStyle = ({ focused, checked }: { focused: boolean; checked: boolean })
     // get random color from array
     style.background = linearGradient
     if (focused) {
-      style.boxShadow = '0 0 0 2px #FF6F9140'
+      style.boxShadow = '0 0 0 2px #ffd40040'
     }
   } else {
     style.background = '#000000'
     if (focused) {
-      style.boxShadow = '0 0 0 2px #00000040'
+      style.boxShadow = '0 0 0 2px #ffd40030'
     }
   }
   return style

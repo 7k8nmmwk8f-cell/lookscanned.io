@@ -16,11 +16,14 @@ import ServieWorkerReloadPrompt from '@/components/Misc/ServiceWorkerReloadPromp
 const route = useRoute()
 const themeOverrides = {
   common: {
-    primaryColor: '#655cff',
-    primaryColorHover: '#7b73ff',
-    primaryColorPressed: '#5148e5',
-    primaryColorSuppl: '#817aff',
-    borderRadius: '10px'
+    primaryColor: '#ffd400',
+    primaryColorHover: '#ffe04a',
+    primaryColorPressed: '#d9b400',
+    primaryColorSuppl: '#ffe45c',
+    borderRadius: '10px',
+    bodyColor: '#111111',
+    cardColor: '#171717',
+    modalColor: '#171717'
   }
 }
 </script>

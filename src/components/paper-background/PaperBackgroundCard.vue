@@ -2,12 +2,13 @@
   <n-card class="paper-card">
     <n-collapse :default-expanded-names="[]">
       <n-collapse-item name="paper" :title="isFrench ? 'Fond papier' : 'Paper background'">
-      <n-text strong>{{ isFrench ? 'Fond papier' : 'Paper background' }}</n-text>
-      <n-text depth="3" style="font-size: 12px">
-        {{ isFrench ? 'Ajoute une texture derrière le contenu du PDF, avant les effets de scan.' : 'Add a paper texture behind the PDF content, before scan effects.' }}
-      </n-text>
-      <n-select :value="modelValue" :options="options" @update:value="update" />
-      </n-space>
+        <n-space vertical :size="10">
+          <n-text strong>{{ isFrench ? 'Fond papier' : 'Paper background' }}</n-text>
+          <n-text depth="3" style="font-size: 12px">
+            {{ isFrench ? 'Ajoute une texture derrière le contenu du PDF, avant les effets de scan.' : 'Add a paper texture behind the PDF content, before scan effects.' }}
+          </n-text>
+          <n-select :value="modelValue" :options="options" @update:value="update" />
+        </n-space>
       </n-collapse-item>
     </n-collapse>
   </n-card>

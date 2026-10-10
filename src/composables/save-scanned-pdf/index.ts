@@ -9,16 +9,14 @@ interface PDFRenderer {
   renderPage(page: number, scale: number): Promise<{ blob: Blob; height: number; width: number; ppi: number }>
   getNumPages(): Promise<number>
 }
-interface ScanRenderer {
-  renderPage(image: Blob): Promise<{ blob: Blob }>
-}
+interface ScanRenderer { renderPage(image: Blob): Promise<{ blob: Blob }> }
 
 export function useSaveScannedPDF(
   pdf: Ref<File | undefined>,
   pdfRenderer: Ref<PDFRenderer | undefined>,
   scanRenderer: Ref<ScanRenderer | undefined>,
   scale: Ref<number>,
-  signatureOverlay?: Ref<SignatureOverlay>,
+  signatureOverlay?: Ref<SignatureOverlay[]>,
   paperBackground?: Ref<PaperBackgroundStyle>
 ) {
   const finishedPages = ref(0)
@@ -30,14 +28,7 @@ export function useSaveScannedPDF(
     const originalFilename = pdf.value?.name ?? 'doc.pdf'
     return `${originalFilename.replace(/\.[^/.]+$/, '')}-scan.pdf`
   })
-
-  const reset = () => {
-    finishedPages.value = 0
-    totalPages.value = 0
-    scannedPDF.value = undefined
-    saving.value = false
-  }
-
+  const reset = () => { finishedPages.value = 0; totalPages.value = 0; scannedPDF.value = undefined; saving.value = false }
   watch(pdfRenderer, reset)
   watch(scanRenderer, reset)
   watch(scale, reset)
@@ -46,18 +37,13 @@ export function useSaveScannedPDF(
 
   const save = async () => {
     try {
-      finishedPages.value = 0
-      totalPages.value = 0
-      saving.value = true
-      const pdf = get(pdfRenderer)
-      const scan = get(scanRenderer)
-      const scale_ = get(scale)
+      finishedPages.value = 0; totalPages.value = 0; saving.value = true
+      const pdf = get(pdfRenderer), scan = get(scanRenderer), scale_ = get(scale)
       if (!pdf || !scan) throw new Error('No PDF or Scan Renderer')
-
       const numPages = await pdf.getNumPages()
       totalPages.value = numPages
       const pages = Array.from({ length: numPages }, (_, i) => i + 1)
-      const scanPages = await Promise.all(pages.map(async (page) => {
+      const scanPages = await Promise.all(pages.map(async page => {
         const { blob: pdfPage, height, width } = await pdf.renderPage(page, scale_)
         const paperPage = await applyPaperBackground(pdfPage, paperBackground ? get(paperBackground) : undefined, page)
         const composedPage = await applySignatureOverlay(paperPage, signatureOverlay ? get(signatureOverlay) : undefined, page)
@@ -71,9 +57,7 @@ export function useSaveScannedPDF(
     } catch (e) {
       console.error(e)
       throw e
-    } finally {
-      saving.value = false
-    }
+    } finally { saving.value = false }
   }
   return { save, progress, saving, scannedPDF }
 }

@@ -3,7 +3,7 @@
     <n-collapse :default-expanded-names="['stamp-0']">
     <n-collapse-item v-for="(overlay, index) in visibleOverlays" :key="overlay.id || index" :name="'stamp-' + index" :title="isFrench ? 'Tampon / signature ' + (index + 1) : 'Stamp / signature ' + (index + 1)">
     <SignatureStampCard
-      v-for="(overlay, index) in []"
+      :key="overlay.id || index"
       :model-value="overlay"
       :num-pages="numPages"
       :label="isFrench ? 'Tampon / signature ' + (index + 1) : 'Stamp / signature ' + (index + 1)"
@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { NSpace, NCollapse, NCollapseItem, NButton } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import SignatureStampCard from './SignatureStampCard.vue'
@@ -25,12 +25,15 @@ import { defaultSignatureOverlay, type SignatureOverlay } from '@/utils/signatur
 const props = defineProps<{ modelValue: SignatureOverlay[]; numPages?: number }>()
 const emit = defineEmits<{ (e: 'update:modelValue', value: SignatureOverlay[]): void }>()
 const { locale } = useI18n()
-const visibleCount = computed(() => Math.min(3, Math.max(1, props.modelValue.length)))
+const visibleCount = ref(1)
 const visibleOverlays = computed(() => props.modelValue.slice(0, visibleCount.value))
 function addOverlay() {
-  if (props.modelValue.length >= 3) return
-  const index = props.modelValue.length
-  emit('update:modelValue', [...props.modelValue, { ...defaultSignatureOverlay, id: 'stamp-' + (index + 1), x: [68, 32, 50][index], y: [78, 84, 65][index] }])
+  if (visibleCount.value >= 3) return
+  const index = visibleCount.value
+  if (props.modelValue.length <= index) {
+    emit('update:modelValue', [...props.modelValue, { ...defaultSignatureOverlay, id: 'stamp-' + (index + 1), x: [68, 32, 50][index], y: [78, 84, 65][index] }])
+  }
+  visibleCount.value += 1
 }
 const isFrench = computed(() => locale.value.startsWith('fr'))
 function updateOverlay(index: number, overlay: SignatureOverlay) {

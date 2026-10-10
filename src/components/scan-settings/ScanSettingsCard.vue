@@ -8,7 +8,7 @@
           <div class="preset-heading">{{ isFrench ? 'Profils rapides' : 'Quick presets' }}</div>
           <n-select v-model:value="selectedPreset" :options="presetOptions" @update:value="applyPreset" />
           <div class="action-row">
-            <n-button secondary @click="resetSettings"><template #icon><n-icon><ArrowCounterclockwise /></n-icon></template>{{ isFrench ? 'Réinitialiser' : 'Reset settings' }}</n-button>
+            <n-button secondary @click="resetSettings"><template #icon><n-icon><Reset /></n-icon></template>{{ isFrench ? 'Réinitialiser' : 'Reset settings' }}</n-button>
             <n-button type="primary" @click="randomizeSettings"><template #icon><n-icon><Shuffle /></n-icon></template>{{ isFrench ? 'Aléatoire' : 'Randomize' }}</n-button>
           </div>
         </div>
@@ -35,7 +35,7 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
-import { NCard, NCollapse, NCollapseItem, NIcon, NSelect, NButton, NTag, NSpace } from 'naive-ui'
+import { NCard, NCollapse, NCollapseItem, NIcon, NSelect, NButton, NTag } from 'naive-ui'
 import { AreaCustom, Reset, Shuffle } from '@vicons/carbon'
 import { ChevronDown12Regular } from '@vicons/fluent'
 import BorderSetting from './settings/BorderSetting.vue'

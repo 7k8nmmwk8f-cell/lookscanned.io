@@ -23,8 +23,8 @@ const isFrench = computed(() => locale.value.startsWith('fr'))
 const options = computed(() => paperBackgroundOptions.map((option, index) => ({
   ...option,
   label: isFrench.value
-    ? ['Aucun fond', 'Papier plié', 'Papier froissé', 'Feuille marquée', 'Photocopie ancienne'][index]
-    : ['No background', 'Folded paper', 'Crumpled paper', 'Creased sheet', 'Old photocopy'][index]
+    ? ['Aucun fond', 'Papier plié', 'Papier froissé', 'Feuille marquée', 'Photocopie ancienne', 'Deux plis horizontaux', 'Plis doux réalistes'][index]
+    : ['No background', 'Folded paper', 'Crumpled paper', 'Creased sheet', 'Old photocopy', 'Two horizontal folds', 'Soft realistic folds'][index]
 })))
 function update(value: PaperBackgroundStyle) {
   emit('update:modelValue', value)

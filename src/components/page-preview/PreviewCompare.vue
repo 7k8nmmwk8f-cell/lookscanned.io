@@ -36,7 +36,7 @@ import ImagePreview from './ImagePreview.vue'
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { computedAsync } from '@vueuse/core'
 import PreviewPagination from './PreviewPagination.vue'
-import { applySignatureOverlay, type SignatureOverlay } from '@/utils/signature-overlay'
+import { applySignatureOverlay, type SignatureOverlay, type DocumentOptions } from '@/utils/signature-overlay'
 import { applyPaperBackground, type PaperBackgroundStyle } from '@/utils/paper-background'
 import { NSpace, NButton } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
@@ -60,6 +60,7 @@ const props = defineProps<{
   scale: number
   signatureOverlay?: SignatureOverlay[]
   paperBackground?: PaperBackgroundStyle
+  documentOptions?: DocumentOptions
 }>()
 const emit = defineEmits<{ (e: 'update:signatureOverlay', value: SignatureOverlay[]): void }>()
 const objectUrls = new Map<Blob, string>()
@@ -135,13 +136,14 @@ const scanImage = computedAsync(async () => {
   const renderer = props.scanRenderer
   const overlays = props.signatureOverlay ? props.signatureOverlay.map(item => ({ ...item })) : []
   const background = props.paperBackground
+  const documentOptions = props.documentOptions
   const currentPage = page.value
   if (!renderer || !source) return
   scanning.value = true
   try {
     const paperPage = await applyPaperBackground(source, background, currentPage)
     if (signal.aborted) return
-    const composedPage = await applySignatureOverlay(paperPage, overlays, currentPage)
+    const composedPage = await applySignatureOverlay(paperPage, overlays, currentPage, documentOptions)
     if (signal.aborted) return
     const { blob } = await renderer.renderPage(composedPage, { signal })
     if (signal.aborted || version !== previewVersion.value) return

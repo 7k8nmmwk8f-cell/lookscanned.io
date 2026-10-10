@@ -13,7 +13,7 @@
         </n-space>
       </n-grid-item>
       <n-grid-item span="12 s:7 m:8 l:9">
-        <PreviewCompare :pdfRenderer="pdfRenderer" :scanRenderer="scanRenderer" :scale="config.scale" :signature-overlay="signatureOverlay" :paper-background="paperBackground" />
+        <PreviewCompare :pdfRenderer="pdfRenderer" :scanRenderer="scanRenderer" :scale="config.scale" v-model:signature-overlay="signatureOverlay" :paper-background="paperBackground" />
       </n-grid-item>
     </n-grid>
   </MainContainer>
@@ -44,12 +44,10 @@ import { ScanCacher } from '@/utils/scan-renderer/scan-cacher'
 const { t } = useI18n()
 const message = useMessage()
 useHead({ title: t('base.scanTitle') + ' - ' + t('base.title'), meta: [{ name: 'description', content: t('base.description') }] })
-
 const pdf = ref<File | undefined>(undefined)
 const signatureOverlay = ref<SignatureOverlay>({ ...defaultSignatureOverlay })
 const paperBackground = ref<PaperBackgroundStyle>('none')
 const numPages = ref(1)
-
 const initExamplePDF = async () => {
   const response = await fetch(PDFURL)
   const blob = await response.blob()
@@ -57,22 +55,15 @@ const initExamplePDF = async () => {
   if (!pdf.value) pdf.value = file
 }
 initExamplePDF()
-
 const config = ref<ScanConfig>(defaultConfig)
 const pdfRenderer = computed(() => pdf.value ? new PDF(pdf.value) : undefined)
 watch(pdfRenderer, async (renderer) => { numPages.value = renderer ? await renderer.getNumPages() : 1 }, { immediate: true })
-
 const scanRenderer = ref(new ScanCacher(new MagicaScanner(config.value)))
 watch(config, (newConfig) => { scanRenderer.value = new ScanCacher(new MagicaScanner(newConfig)) }, { deep: true })
 const scale = computed(() => config.value.scale)
 const { save, progress, saving, scannedPDF } = useSaveScannedPDF(pdf, pdfRenderer, scanRenderer, scale, signatureOverlay, paperBackground)
-
 const generate = async () => {
-  try {
-    await save()
-    message.success(t('actions.generateSuccess'))
-  } catch (e) {
-    message.error(t('actions.generateError') + (e as Error).message)
-  }
+  try { await save(); message.success(t('actions.generateSuccess')) }
+  catch (e) { message.error(t('actions.generateError') + (e as Error).message) }
 }
 </script>

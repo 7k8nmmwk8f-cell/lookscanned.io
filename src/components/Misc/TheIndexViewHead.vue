@@ -1,21 +1,20 @@
 <template>
   <n-space vertical align="center" justify="center" height="100%" class="brand-hero">
     <div class="brand-lockup" aria-label="The Scanner">
-      <svg class="brand-icon" viewBox="0 0 80 80" role="img" aria-label="The Scanner logo">
+      <svg class="brand-icon" viewBox="0 0 120 120" role="img" aria-label="The Scanner logo">
         <defs>
-          <linearGradient id="scanner-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8174ff"/><stop offset="1" stop-color="#493ce0"/></linearGradient>
-          <linearGradient id="scan-glow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c5baff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" /><stop offset="1" stop-color="#c5baff" stop-opacity="0"/></linearGradient>
-          <filter id="scan-shadow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter>
+          <linearGradient id="glass-sheet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9c8aff" stop-opacity=".72"/><stop offset=".55" stop-color="#684cff" stop-opacity=".38"/><stop offset="1" stop-color="#3f2bc5" stop-opacity=".9"/></linearGradient>
+          <linearGradient id="scan-beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b69aff" stop-opacity="0"/><stop offset=".48" stop-color="#fff"/><stop offset=".58" stop-color="#eee7ff"/><stop offset="1" stop-color="#a58aff" stop-opacity="0"/></linearGradient>
+          <filter id="beam-glow" x="-30%" y="-100%" width="160%" height="300%"><feGaussianBlur stdDeviation="3.5"/></filter>
         </defs>
-        <path d="M18 8h31l13 13v39a7 7 0 0 1-7 7H18a7 7 0 0 1-7-7V15a7 7 0 0 1 7-7Z" fill="url(#scanner-gradient)" stroke="#9b91ff" stroke-opacity=".65"/>
-        <path d="M49 8v13h13" fill="#d2ccff"/>
-        <path d="M20 31h28M20 39h28M20 47h19" stroke="#f7f6ff" stroke-width="3" stroke-linecap="round"/>
-        <path d="M13 39h48" stroke="#bdb2ff" stroke-width="8" opacity=".55" filter="url(#scan-shadow)"/>
-        <path d="M13 39h48" stroke="url(#scan-glow)" stroke-width="3" stroke-linecap="round"/>
-        <g transform="translate(30 49)">
-          <rect x="0" y="0" width="39" height="24" rx="6" fill="#e7e3ff" stroke="#5d50ef" stroke-width="2.5"/>
-          <path d="M7 8h25M7 15h18" stroke="#5145df" stroke-width="2.5" stroke-linecap="round"/>
-        </g>
+        <path d="M23 34Q23 25 32 28L68 39Q75 41 75 51V91Q75 99 66 97L29 86Q23 84 23 76Z" fill="#4d36d4" fill-opacity=".72" stroke="#9478ff" stroke-width="2"/>
+        <path d="M37 15Q37 7 46 10L83 21Q92 24 92 33V83Q92 93 82 90L47 80Q37 77 37 67Z" fill="url(#glass-sheet)" stroke="#b7a1ff" stroke-width="2.4"/>
+        <path d="M74 18L91 34L76 30Q73 29 74 18Z" fill="#e4d9ff" fill-opacity=".9"/>
+        <path d="M42 48L81 59M42 58L81 69M42 68L66 75" stroke="#fff" stroke-opacity=".62" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M12 62L104 81" stroke="#a48aff" stroke-opacity=".9" stroke-width="11" filter="url(#beam-glow)"/>
+        <path d="M12 62L104 81" stroke="url(#scan-beam)" stroke-width="5" stroke-linecap="round"/>
+        <path d="M47 76Q47 70 54 72L99 83Q106 85 106 92V103Q106 110 99 108L53 97Q47 95 47 89Z" fill="#d8ceff" stroke="#6047f5" stroke-width="3"/>
+        <path d="M57 83L94 92M57 91L83 97" stroke="#6650ed" stroke-width="3" stroke-linecap="round"/>
       </svg>
       <div>
         <n-h1>The Scanner</n-h1>

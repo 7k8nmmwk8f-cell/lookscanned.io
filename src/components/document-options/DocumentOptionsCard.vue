@@ -12,6 +12,9 @@
           <n-checkbox :checked="modelValue.foldedCorner" @update:checked="update('foldedCorner', $event)">
             {{ isFrench ? 'Coin de page corné' : 'Folded page corner' }}
           </n-checkbox>
+          <n-checkbox :checked="modelValue.binderHoles" @update:checked="update('binderHoles', $event)">
+            {{ isFrench ? 'Trous de classeur (3 trous)' : 'Binder holes (3-hole punch)' }}
+          </n-checkbox>
         </n-space>
       </n-collapse-item>
     </n-collapse>

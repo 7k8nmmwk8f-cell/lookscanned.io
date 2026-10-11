@@ -50,7 +50,7 @@ useHead({ title: 'The Scanner - ' + t('base.scanTitle'), meta: [{ name: 'descrip
 const pdf = ref<File | undefined>(undefined)
 const signatureOverlay = ref<SignatureOverlay[]>(defaultSignatureOverlays())
 const paperBackground = ref<PaperBackgroundStyle>('none')
-const documentOptions = ref<DocumentOptions>({ staple: false, foldedCorner: false })
+const documentOptions = ref<DocumentOptions>({ staple: false, foldedCorner: false, binderHoles: false })
 const numPages = ref(1)
 const initExamplePDF = async () => {
   const response = await fetch(PDFURL)
